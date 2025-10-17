@@ -4,7 +4,7 @@ import pkg from 'casper-js-sdk';
 const { HttpHandler, RpcClient, InitiatorAddr, Timestamp, Duration, PricingMode, TransactionTarget, TransactionEntryPoint, TransactionScheduling, Args, PublicKey, PaymentLimitedMode, Transaction, TransactionV1Payload, TransactionV1, CLValue, TransactionEntryPointEnum, PrivateKey, KeyAlgorithm, InfoGetTransactionResult, TransactionHash, ContractCallBuilder, Key, KeyTypeID } = pkg;
 
 // Load the private key.
-const pemFilePath = '<PATH_TO_YOUR_SECRET_KEY.pem>';
+const pemFilePath = '/Users/ziel/workspace/odra/casper-keys/testnet-account/secret_key.pem';
 const fileContent = fs.readFileSync(pemFilePath, 'utf8');
 const privateKey = PrivateKey.fromPem(fileContent, KeyAlgorithm.ED25519);
 
@@ -14,9 +14,10 @@ const rpcClient = new RpcClient(rpcHandler);
 
 // Create a new, example SR_ID argument value.
 // You'll have to put keccak256 hash here.
-function new_sr_id(value: number): CLValue {
-    let arr = new Array<number>(32).fill(0);
-    arr[0] = value;
+const EXAMPLE_SR_ID = new_sr_id("8a2eb90b352c2e55340d04f792ee1d0907141214208bab69a5569b83ee87da55");
+
+function new_sr_id(value: string): CLValue {
+    let arr: Uint8Array = Buffer.from(value, 'hex');
     return CLValue.newCLByteArray(Uint8Array.from(arr));
 }
 
@@ -101,7 +102,7 @@ async function send_native_transfer(sr_id: CLValue): Promise<TransactionHash> {
 async function run_native_transfer_example() {
     console.log('[x] Running native transfer example');
     console.log('[x] Public key:', privateKey.publicKey.toHex());
-    let native_tx_hash = (await send_native_transfer(new_sr_id(15))).toHex();
+    let native_tx_hash = (await send_native_transfer(EXAMPLE_SR_ID)).toHex();
     const native_tx = await rpcClient.getTransactionByTransactionHash(native_tx_hash);
     let extracted_sr_id = extract_sr_id(native_tx);
     console.log("[x] Extracted sr_id argument value:", extracted_sr_id);
@@ -153,8 +154,7 @@ async function send_cep18_transfer(sr_id: CLValue): Promise<TransactionHash> {
 async function run_cep18_transfer_example() {
     console.log('[x] Running CEP-18 transfer example');
     console.log('[x] Public key:', privateKey.publicKey.toHex());
-    let sr_id = new_sr_id(63);
-    let cep18_tx_hash = (await send_cep18_transfer(sr_id)).toHex();
+    let cep18_tx_hash = (await send_cep18_transfer(EXAMPLE_SR_ID)).toHex();
     const cep18_tx = await rpcClient.getTransactionByTransactionHash(cep18_tx_hash);
     let extracted_sr_id = extract_sr_id(cep18_tx);
     console.log("[x] Extracted sr_id argument value:", extracted_sr_id);
